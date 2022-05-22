@@ -1,0 +1,2 @@
+# POIT
+Semestralny projelt
