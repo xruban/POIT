@@ -2,8 +2,8 @@ from threading import Lock
 from flask import Flask, render_template, session, request, jsonify, url_for
 from flask_socketio import SocketIO, emit, disconnect  
 import time
-import random
 import math
+import serial.tools.list_ports
 
 async_mode = None
 
@@ -14,8 +14,48 @@ socketio = SocketIO(app, async_mode=async_mode)
 thread = None
 thread_lock = Lock() 
 
-
 def background_thread(args):
+    ports = serial.tools.list_ports.comports()
+    serialInst = serial.Serial()
+
+    portList = []
+
+    for onePort in ports:
+        portList.append(str(onePort))
+
+    val = "/dev/ttyUSB0"
+
+    for x in range(0, len(portList)):
+        if portList[x].startswith(str(val)):
+            portVar = str(val)
+            print(portList[x])
+
+    serialInst.baudrate = 9600
+    serialInst.port = portVar
+    serialInst.open()
+
+    dataList = []
+    while True:
+        if serialInst.in_waiting:
+            packet = serialInst.readline()
+            print(packet.decode('utf'))
+            print(args)
+            socketio.sleep(2)
+            count = packet.decode('utf')
+            premS = float(count)
+            premC = 4
+            dataDict = {
+                "t": time.time(),
+                "x": count,
+                "y": premS,
+                "z": premC}
+            dataList.append(dataDict)
+            socketio.emit('my_response',
+                          {'dataSin': premS, 'dataCos': premC, 'count': count},
+                          namespace='/test')
+
+
+def background_thread_cv8(args):
     count = 0    
     dataList = []          
     while True:
@@ -27,7 +67,6 @@ def background_thread(args):
           A = 1
           btnV = 'null' 
           sliderV = 0 
-        #print(A)
         print(args)  
         socketio.sleep(2)
         count += 1
@@ -39,9 +78,6 @@ def background_thread(args):
           "y": float(A)*premS,
           "z": float(A)*premC}
         dataList.append(dataDict)
-        #if len(dataList)>0:
-        #  print(str(dataList))
-        #  print(str(dataList).replace("'", "\""))
         socketio.emit('my_response',
                       {'dataSin': float(A)*premS, 'dataCos': float(A)*premC, 'count': count},
                       namespace='/test')  
@@ -74,7 +110,6 @@ def test_connect():
     with thread_lock:
         if thread is None:
             thread = socketio.start_background_task(target=background_thread, args=session._get_current_object())
-#    emit('my_response', {'data': 'Connected', 'count': 0})
 
 @socketio.on('click_event', namespace='/test')
 def db_message(message):   
