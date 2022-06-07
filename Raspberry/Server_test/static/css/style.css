@@ -1,0 +1,29 @@
+.uk-button-success:not([disabled]) {
+  color:#fff;
+  background-color: green;
+}
+
+.uk-button-warning:not([disabled]) {
+  color:#fff;
+  background-color: orange;
+}
+
+#log_table {
+  max-height: 100vh;
+  overflow: scroll;
+  display: block;
+}
+
+#plotdiv {
+  width: 600px;
+  height: 250px;
+}
+
+#indicatordiv {
+  width: 600px;
+  height: 250px;
+}
+
+#disabled_button {
+  margin:2rem;
+}

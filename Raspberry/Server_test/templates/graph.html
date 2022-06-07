@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>POIT'2022</title>
+    <style type="text/css">
+    </style>
+    <script src="static/libs/jquery-1.11.1.min.js"></script>
+    <script src="static/libs/plotly-latest.min.js"></script>
+
+  <script>
+   $(document).ready(function(){
+      var layout = {
+            title: 'Sine and cosine',
+            xaxis: {
+              title: 'time',
+              range: [0,60]
+            },
+            yaxis: {
+              title: 'ys(t)',
+              range: [-1,1]
+            }
+        };
+
+    $('form#emit').submit(function(event) {
+      var id;
+      var traces = new Array();
+      id = $('#emit_value').val()
+        
+        $.ajax({
+          type: "GET",
+          url: "/read/" + id,
+          success:function(data) 
+          { console.log(data);  
+            data = JSON.parse(data);
+            console.log(data);    
+            n = Object.keys(data).length;
+            console.log(n);
+            
+            x = [];
+            ys = [];
+            yc = [];
+
+            $("#log").empty();
+
+            for (var i=0; i<n; i++){
+              x.push(data[i].x);
+              ys.push(data[i].ys);
+              yc.push(data[i].yc); 
+              $('#log').append('Received #'+data[i].x+': sin: '+data[i].ys+', cos: '+data[i].yc+'<br>').html();
+            }
+            
+            let traceSine = {
+              x: x,
+              y: ys,
+              name: 'Sine'
+            };
+            let traceCosine = {
+              x: x,
+              y: yc,
+              name: 'Cos'
+            };
+
+            traces.push(traceSine);
+            traces.push(traceCosine);
+
+            Plotly.newPlot($('#plotdiv')[0], traces,layout);           
+          }
+        }).done(function( o ) {
+          console.log("success");
+        })
+        .fail(function(jqXHR, textStatus, errorThrown) {
+          console.log("not found");
+          $('#log').append('ID: '+id+' not found in file.<br>').html();
+        });
+
+        return false; 
+    });
+  });   
+
+  </script>
+</head>
+<body>
+ 
+  <div id="plotdiv" style="width:700px;height:300px;"></div>
+    
+  <form id="emit" method="POST" action='#'>
+    <input type="text" name="emit_value" id="emit_value" placeholder="ID">
+    <input type="submit" value="Fetch">
+  </form>
+  <h2>Received:</h2>
+  <div id="log"></div>
+ </body>
+</body>
+</html> 

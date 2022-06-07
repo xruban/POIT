@@ -1,51 +1,150 @@
 <!DOCTYPE HTML>
 <html>
- <head>
+
+<head>
   <title>Flask-SocketIO Test</title>
-   <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-   <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
-   <script type="text/javascript" charset="utf-8">
-     $(document).ready(function() {
-      namespace = '/test';
-      var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+  <script type="text/javascript" src="//code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
+  <script type="text/javascript" src="//cdn.plot.ly/plotly-2.12.1.min.js"></script>
 
-      socket.on('connect', function() {
-        socket.emit('my_event', {data: 'I\'m connected!', value: 1}); });
+  <!-- Theme styles -->
+  <link rel="stylesheet" href="/static/css/style.css">
 
-      socket.on('my_response', function(msg) {
-        console.log(msg.data);
-        $('#log').append('Received #'+msg.count+': '+msg.data+'<br>').html(); });
+  <!-- Theme JS -->
+  <script type="text/javascript" src="/static/libs/main.js"></script>
 
-      $('form#emit').submit(function(event) {
-          socket.emit('my_event', {value: $('#emit_value').val()});
-          return false; });
-      $('#buttonVal').click(function(event) {
-          //console.log($('#buttonVal').val());
-          socket.emit('click_event', {value: $('#buttonVal').val()});
-          return false; });
-      $('#sliderVal').change(function(event) {
-          console.log($('#sliderVal').val());
-          socket.emit('slider_event', {value: $('#sliderVal').val()});
-          return false; });
-      $('form#disconnect').submit(function(event) {
-          socket.emit('disconnect_request');
-          return false; });         
-      });
-    </script>
- </head>
- <body>
-  <h1>Flask-SocketIO Test</h1>
+  <!-- UIkit CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.14.0/dist/css/uikit.min.css" />
+
+  <!-- UIkit JS -->
+  <script src="https://cdn.jsdelivr.net/npm/uikit@3.14.0/dist/js/uikit.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uikit@3.14.0/dist/js/uikit-icons.min.js"></script>
+
+</head>
+
+<body>
+
+  <nav class="uk-navbar-container uk-margin" uk-navbar="true">
+    <div class="uk-navbar-left">
+
+      <a class="uk-navbar-item uk-logo" href="#">Logo</a>
+
+    </div>
+
+    <div class="uk-navbar-right">
+
+      <div>Hello!</div>
+      <button id="disabled_button" class='uk-button' disabled>Disconnect</button>
+
+    </div>
+  </nav>
+
+  <!-- Initial screen with Start button -->
+  <section class="uk-section" id='init_screen'>
+    <div class="uk-container uk-container-xsmall" id='screen-1'>
+
+      <h1 class="uk-heading-line uk-text-center">
+        <span>Flask-SocketIO Test</span>
+      </h1>
+      <!-- <h1 class="uk-heading-divider"></h1> -->
+
+      <h1 class="uk-heading-divider"></h1>
+
+      <form id="init_form" class="uk-form-horizontal uk-margin-large" method="" action="">
+
+        <button id='submit_init' type="submit" class="uk-button uk-button-primary uk-align-center">Open</button>
+
+      </form>
+    </div>
+  </section>
+
+  <!-- Tabs for work -->
+  <section class="uk-section" id='management_screen' style='display:none'>
+    <div class="uk-container">
+
+      <ul uk-tab>
+        <li><a href="#manage">Manage</a></li>
+        <li><a href="#received-list">List</a></li>
+        <li><a href="#received-plot">Plot</a></li>
+        <li><a href="#received-indicator">Indicator</a></li>
+        <li><a href="#archive-db">Archive in DB</a></li>
+        <li><a href="#archive-db">Archive in file</a></li>
+      </ul>
+
+      <ul class='uk-switcher uk-margin'>
+
+        <!-- START Manage tab -->
+        <li>
+          <form id="manage_form" class="uk-form-horizontal uk-margin-large" method="" action="">
+
+            <legend class="uk-legend">Use this panel to manage data:</legend>
+
+            <div class="uk-margin">
+              <label class="uk-form-label" for="emit_value">Amplitude:</label>
+              <div class="uk-form-controls">
+                <input id="emit_value" class="uk-input" name="emit_value" type="text" placeholder="0">
+              </div>
+            </div>
+
+            <button id='submit_emit' type="button" class="uk-button uk-button-primary uk-align-center">Submit amplitude</button>
+
+            <div class="uk-margin">
+              <button id='submit_start' type="button" class="uk-button uk-button-success uk-align-center" disabled>Start</button>
+              <button id='submit_stop' type="button" class="uk-button uk-button-warning uk-align-center">Pause</button>
+            </div>
+
+          </form>
+        </li>
+        <!-- END Manage tab -->
+
+        <!-- START List tab -->
+        <li>
+          <h2>Receive:</h2>
+
+          <table class='uk-table' uk-table id="log_table">
+            <thead>
+              <th>ID</th>
+              <th>Data</th>
+            </thead>
+            <tbody>
+
+            </tbody>
+          </table>
+        </li>
+        <!-- END List tab -->
+
+        <!-- START Plot tab -->
+        <li>
+          <h2>Plot:</h2>
+          <div id="plotdiv"></div>
+        </li>
+        <!-- END Plot tab -->
+
+        <!-- START Indicator tab -->
+        <li>
+          <h2>Indicator:</h2>
+          <div id="indicatordiv"></div>
+        </li>
+        <!-- END Indicator tab -->
+
+      </ul>
+
+
+    </div>
+  </section>
+
+  <!-- <h1>Flask-SocketIO Test</h1>
   <h2>Send:</h2>
   <form id="emit" method="POST" action='#'>
     <input type="text" name="emit_value" id="emit_value" placeholder="Amplituda">
-    <input type="submit" value="Send">
+    <input type="submit" value="Echo">
   </form>
-  <button id="buttonVal" type="submit" value="send">Send value</button>
-  <input type="range" id="sliderVal" name="vstup2" min="0" max="10" step="2" value="8">
+  <button id="buttonVal" type="submit" value="start">Start</button>
   <form id="disconnect" method="POST" action="#">
     <input type="submit" value="Disconnect">
-  </form> 
+  </form>
   <h2>Receive:</h2>
-  <div id="log"></div>
- </body>
+  <div id="log"></div> -->
+</body>
+
 </html>
