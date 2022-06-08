@@ -34,18 +34,19 @@ $(document).ready(function() {
 
         // For plot tab
         x.push(parseFloat(msg.count));
-        y.push(parseFloat(msg.sinus));
-        z.push(parseFloat(msg.cosinus));
+        y.push(parseFloat(msg.data));
+        // y.push(parseFloat(msg.sinus));
+        // z.push(parseFloat(msg.cosinus));
 
         trace = {
           x: x,
           y: y,
         };
 
-        tracez = {
-          x: x,
-          y: z,
-        };
+        // tracez = {
+        //   x: x,
+        //   y: z,
+        // };
 
         layout = {
           title: 'Data',
@@ -57,11 +58,12 @@ $(document).ready(function() {
             //range: [-1,1]
           }
         };
-        console.log(trace);
-        console.log("this is tracez: ", tracez);
+        // console.log(trace);
+        // console.log("this is tracez: ", tracez);
         var traces = new Array();
         traces.push(trace);
-        traces.push(tracez);
+        // traces.push(tracez);
+
         Plotly.newPlot('plotdiv', traces, layout);
 
         // For indicator tab
@@ -95,6 +97,62 @@ $(document).ready(function() {
       }
 
     });
+
+
+    socket.on('load_from_file_response', function(msg) {
+      console.log(msg);
+
+      response = JSON.parse(msg.data);
+
+      trace = {
+        x: response.x,
+        y: response.y,
+      };
+
+      layout = {
+        title: 'Data',
+        xaxis: {
+          title: 'x',
+        },
+        yaxis: {
+          title: 'y,z',
+          //range: [-1,1]
+        }
+      };
+
+      var traces = new Array();
+      traces.push(trace);
+
+      Plotly.newPlot('plotdiv_file', traces, layout);
+    });
+
+    socket.on('load_from_db_response', function(msg) {
+      console.log(msg);
+
+      response = JSON.parse(msg.data);
+
+      trace = {
+        x: response.x,
+        y: response.y,
+      };
+
+      layout = {
+        title: 'Data',
+        xaxis: {
+          title: 'x',
+        },
+        yaxis: {
+          title: 'y,z',
+          //range: [-1,1]
+        }
+      };
+
+      var traces = new Array();
+      traces.push(trace);
+
+      Plotly.newPlot('plotdiv_db', traces, layout);
+    });
+
 
     $('#disabled_button').attr('disabled', false).addClass('uk-button-primary');
     $('#init_screen').slideUp(1000);
@@ -164,6 +222,43 @@ $(document).ready(function() {
 
     $('#submit_start').attr('disabled', true);
     $('#submit_stop').attr('disabled', false);
+
+    return false;
+  });
+
+
+  $('#save_to_file').on('click', function(event) {
+    event.preventDefault();
+
+    socket.emit('write_to_file', {
+      value: JSON.stringify({x: x, y: y, z: z})
+    });
+
+    return false;
+  });
+
+  $('#load_from_file').on('click', function(event) {
+    event.preventDefault();
+
+    socket.emit('load_from_file', {});
+
+    return false;
+  });
+
+  $('#save_to_db').on('click', function(event) {
+    event.preventDefault();
+
+    socket.emit('write_to_db', {
+      value: JSON.stringify({x: x, y: y, z: z})
+    });
+
+    return false;
+  });
+
+  $('#load_from_db').on('click', function(event) {
+    event.preventDefault();
+
+    socket.emit('load_from_db', {});
 
     return false;
   });
