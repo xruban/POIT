@@ -74,7 +74,7 @@ $(document).ready(function() {
           },
           value: parseFloat(msg.data),
           title: {
-            text: "Values"
+            text: "Co2 values"
           },
           type: "indicator",
           mode: "gauge+number",
@@ -83,7 +83,7 @@ $(document).ready(function() {
           },
           gauge: {
             axis: {
-              range: [null, 1]
+              range: [80, 1250]
             }
           }
         }];
